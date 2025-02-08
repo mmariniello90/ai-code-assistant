@@ -1,14 +1,15 @@
 from ollama import chat
-from colorama import Fore, Style
-from pygments import highlight
-from pygments.lexers import PythonLexer
-from pygments.formatters import TerminalFormatter
+from rich.console import Console
+from rich.syntax import Syntax
+from rich.markdown import Markdown
 
 from model.config import MODEL_NAME, SYSTEM_PROMPT
 from utils.format_text import split_explanation_and_code
 
 
 def main():
+    console = Console()
+
     messages = [
         {
             "role": "system",
@@ -20,25 +21,28 @@ def main():
         },
     ]
 
-    print(Fore.RED + f"[AI]" + Style.RESET_ALL)
+    console.print("[bold magenta](AI)[/bold magenta]")
     print(messages[1]["content"])
     print()
 
     while True:
-        print(Fore.GREEN + "[USER]" + Style.RESET_ALL)
+        console.print("[bold green](USER)[/bold green]")
         user_input = input()
         print()
 
         if user_input.strip() == "quit":
+            console.print("[bold magenta](AI)[/bold magenta]")
+            print("Bye!")
             break
 
-        response = chat(
-            MODEL_NAME,
-            messages=messages
-            + [
-                {"role": "user", "content": user_input},
-            ],
-        )
+        with console.status("[gray]Generating...", spinner="dots2"):
+            response = chat(
+                MODEL_NAME,
+                messages=messages
+                + [
+                    {"role": "user", "content": user_input},
+                ],
+            )
 
         # Add the response to the messages to maintain the history
         messages += [
@@ -46,23 +50,22 @@ def main():
             {"role": "assistant", "content": response.message.content},
         ]
 
-        print(Fore.RED + f"[AI]" + Style.RESET_ALL)
+        console.print("[bold magenta](AI)[/bold magenta]")
 
         generation = split_explanation_and_code(response.message.content)
 
         for content in generation:
             if content[0] == "explanation":
-                print(content[-1])
+                md = Markdown(content[-1])
+                console.print(md)
                 print()
             else:
-                print("--" * 40)
-
-                colored_code = highlight(
-                    content[-1], PythonLexer(), TerminalFormatter()
+                colored_code = Syntax(
+                    content[-1], lexer="python", theme="monokai", line_numbers=True
                 )
 
-                print(colored_code)
-                print("--" * 40)
+                console.print(colored_code)
+
                 print()
 
 
