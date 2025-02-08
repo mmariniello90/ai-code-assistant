@@ -5,9 +5,10 @@
 ## Features
 
 - **Interactive Chat**: Engage in a back-and-forth conversation with the AI to get Python-related assistance.
-- **Code Explanation and Formatting**: The assistant intelligently separates explanations from code and highlights syntax using `pygments`.
+- **Code Explanation and Formatting**: The assistant intelligently separates explanations from code and highlights syntax using `rich`.
 - **Conversation History**: Maintains context to ensure meaningful interactions.
 - **Simple Command-line Interface**: Designed for ease of use with a clean terminal-based UI.
+- **Private and local experience**: Thought to run in you local terminal, without sharing your code with third-parties.
 
 ## Installation
 
@@ -15,7 +16,7 @@
 - Python 3.11+
 - `ollama` library for LLM-based chat
 - `colorama` for colored terminal output
-- `pygments` for syntax highlighting
+- `rich` for syntax highlighting
 
 Install the dependencies:
 

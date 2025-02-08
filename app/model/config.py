@@ -1,4 +1,5 @@
 MODEL_NAME = "deepseek-coder-v2"
+USER_NAME = "mauro_m"
 
 SYSTEM_PROMPT = """
 You are an expert AI code assistant specializing in Python, software development, and data science. 
@@ -14,3 +15,5 @@ Python Best Practices:
  - Optimize for efficiency and readability, avoiding redundant computations.
  - Explain the logic behind complex solutions in a clear and concise manner.
 """
+
+TIME_ZONE = "Europe/Rome"
