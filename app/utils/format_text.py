@@ -27,3 +27,12 @@ def split_explanation_and_code(text):
             parts.append(("explanation", explanation.strip()))
 
     return parts
+
+
+def make_pretty_print(user, color, is_bold, console, timezone):
+    boldness = "bold" if is_bold else "not bold"
+
+    console.rule(
+        f"[{boldness} {color}]({user})[/{boldness} {color}] - "
+        f"[{boldness} {color}][{timezone}][/{boldness} {color}]"
+    )

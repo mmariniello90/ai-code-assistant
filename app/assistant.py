@@ -1,22 +1,22 @@
 import click
-from ollama import chat
 from rich.console import Console
 from rich.syntax import Syntax
 from rich.markdown import Markdown
+from rich.prompt import Prompt
 
-from model.config import MODEL_NAME, USER_NAME, SYSTEM_PROMPT, TIME_ZONE
-from utils.format_text import split_explanation_and_code
+from model.prompts import system_prompt
+from model.llms import get_model_response
+from utils.format_text import split_explanation_and_code, make_pretty_print
 from utils.get_local_time import get_local_time
 
 
 @click.command()
-@click.option('--model', type=str, default="deepseek-coder-v2", help='LLM name.')
-@click.option('--user', type=str, default="user1", help='User name.')
-@click.option('--timezone', type=str, default="Europe/Rome", help='Your timezone.')
-@click.option('--temperature', type=float, default=0.7, help='Model temperature.')
-@click.option('--num_predict', type=int, default=2000, help='Max tokens to predict.')
+@click.option("--model", type=str, default="deepseek-coder-v2", help="LLM name.")
+@click.option("--user", type=str, default="user1", help="User name.")
+@click.option("--timezone", type=str, default="Europe/Rome", help="Your timezone.")
+@click.option("--temperature", type=float, default=0.7, help="Model temperature.")
+@click.option("--num_predict", type=int, default=2000, help="Max tokens to predict.")
 def main(model, user, timezone, temperature, num_predict):
-
     click.echo(f"MODEL NAME: {model}")
     click.echo(f"USER NAME: {user}")
     click.echo(f"TIMEZONE: {timezone}")
@@ -28,7 +28,7 @@ def main(model, user, timezone, temperature, num_predict):
     messages = [
         {
             "role": "system",
-            "content": SYSTEM_PROMPT,
+            "content": system_prompt,
         },
         {
             "role": "assistant",
@@ -36,41 +36,54 @@ def main(model, user, timezone, temperature, num_predict):
         },
     ]
 
-    console.rule(
-        f"[bold magenta]({model})[/bold magenta] - "
-        f"[not bold magenta][{get_local_time(time_zone=timezone)}][/not bold magenta]"
+    make_pretty_print(
+        user=model,
+        color="magenta",
+        is_bold=True,
+        timezone=get_local_time(time_zone=timezone),
+        console=console,
     )
+
+    # console.rule(
+    #    f"[bold magenta]({model})[/bold magenta] - "
+    #    f"[not bold magenta][{get_local_time(time_zone=timezone)}][/not bold magenta]"
+    # )
     print(messages[1]["content"])
     print("\n\n")
 
     while True:
-        console.rule(
-            f"[bold green]({user})[/bold green] - "
-            f"[not bold green][{get_local_time(time_zone=timezone)}][/not bold green]"
+        make_pretty_print(
+            user=user,
+            color="green",
+            is_bold=True,
+            timezone=get_local_time(time_zone=timezone),
+            console=console,
         )
-        user_input = input(">: ")
+
+        user_input = Prompt.ask(">: ")
         print("\n\n")
 
         if user_input.strip() == "quit":
-            console.rule(
-                f"[bold magenta]({model})[/bold magenta] - "
-                f"[not bold magenta][{get_local_time(time_zone=timezone)}][/not bold magenta]"
+            make_pretty_print(
+                user=model,
+                color="magenta",
+                is_bold=True,
+                timezone=get_local_time(time_zone=timezone),
+                console=console,
             )
+
             print("Bye!")
             print("\n\n")
             break
 
         with console.status("[gray]Generating...", spinner="dots2"):
-            response = chat(
+
+            response = get_model_response(
                 model=model,
-                options={
-                    "temperature": temperature,
-                    "num_predict": num_predict
-                },
-                messages=messages
-                + [
-                    {"role": "user", "content": user_input},
-                ],
+                temperature=temperature,
+                num_predict=num_predict,
+                history=messages,
+                user_input=user_input
             )
 
         # Add the response to the messages to maintain the history
@@ -79,9 +92,12 @@ def main(model, user, timezone, temperature, num_predict):
             {"role": "assistant", "content": response.message.content},
         ]
 
-        console.rule(
-            f"[bold magenta]({model})[/bold magenta] - "
-            f"[not bold magenta][{get_local_time(time_zone=timezone)}][/not bold magenta]"
+        make_pretty_print(
+            user=model,
+            color="magenta",
+            is_bold=True,
+            timezone=get_local_time(time_zone=timezone),
+            console=console,
         )
 
         generation = split_explanation_and_code(response.message.content)
